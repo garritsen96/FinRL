@@ -56,24 +56,28 @@ class TensorboardCallback(BaseCallback):
         return True
 
     def _on_rollout_end(self) -> bool:
-        try:
-            rollout_buffer_rewards = self.locals["rollout_buffer"].rewards.flatten()
-            self.logger.record(
-                key="train/reward_min", value=min(rollout_buffer_rewards)
-            )
-            self.logger.record(
-                key="train/reward_mean", value=statistics.mean(rollout_buffer_rewards)
-            )
-            self.logger.record(
-                key="train/reward_max", value=max(rollout_buffer_rewards)
-            )
-        except BaseException as error:
-            # Handle the case where "rewards" is not found
-            self.logger.record(key="train/reward_min", value=None)
-            self.logger.record(key="train/reward_mean", value=None)
-            self.logger.record(key="train/reward_max", value=None)
-            print("Logging Error:", error)
+    # rollout_buffer sadece PPO, A2C gibi on-policy algoritmalarda vardır.
+      if "rollout_buffer" not in self.locals:
         return True
+
+      rollout_buffer_rewards = self.locals["rollout_buffer"].rewards.flatten()
+
+      self.logger.record(
+        "train/reward_min",
+        rollout_buffer_rewards.min()
+      )
+
+      self.logger.record(
+        "train/reward_mean",
+        rollout_buffer_rewards.mean()
+      )
+
+      self.logger.record(
+        "train/reward_max",
+        rollout_buffer_rewards.max()
+      )
+
+      return True
 
 
 class DRLAgent:
